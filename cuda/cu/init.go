@@ -2,7 +2,6 @@ package cu
 
 // This file implements CUDA driver initialization
 
-//#include <cuda.h>
 import "C"
 
 // Initialize the CUDA driver API.

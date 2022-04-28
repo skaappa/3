@@ -2,7 +2,6 @@ package cu
 
 // This file implements CUDA streams
 
-//#include <cuda.h>
 import "C"
 import "unsafe"
 

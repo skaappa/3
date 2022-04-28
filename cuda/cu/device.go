@@ -2,7 +2,6 @@ package cu
 
 // This file implements CUDA driver device management
 
-//#include <cuda.h>
 import "C"
 
 // CUDA Device number.

@@ -2,7 +2,6 @@ package cu
 
 // This file provides access to CUDA driver error statuses (type CUresult).
 
-//#include <cuda.h>
 import "C"
 import (
 	"fmt"

@@ -2,7 +2,6 @@ package cu
 
 // This file implements CUDA unified addressing.
 
-//#include <cuda.h>
 import "C"
 
 import (

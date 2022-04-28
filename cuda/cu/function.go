@@ -2,7 +2,6 @@ package cu
 
 // This file implements manipulations on CUDA functions
 
-//#include <cuda.h>
 import "C"
 
 import (

@@ -2,7 +2,6 @@ package cu
 
 // This file implements loading of CUDA ptx modules
 
-//#include <cuda.h>
 import "C"
 
 import (

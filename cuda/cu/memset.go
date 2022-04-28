@@ -2,7 +2,6 @@ package cu
 
 // This file implements CUDA memset functions.
 
-//#include <cuda.h>
 import "C"
 
 import (
