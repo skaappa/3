@@ -42,15 +42,22 @@ addcubicanisotropy2(float* __restrict__ Bx, float* __restrict__ By, float* __res
         float u2m = dot(u2, m);
         float u3m = dot(u3, m);
 
-        float3 B = -2.0f*k1*((pow2(u2m) + pow2(u3m)) * (    (u1m) * u1) +
-                             (pow2(u1m) + pow2(u3m)) * (    (u2m) * u2) +
-                             (pow2(u1m) + pow2(u2m)) * (    (u3m) * u3))-
-                   2.0f*k2*((pow2(u2m) * pow2(u3m)) * (    (u1m) * u1) +
-                            (pow2(u1m) * pow2(u3m)) * (    (u2m) * u2) +
-                            (pow2(u1m) * pow2(u2m)) * (    (u3m) * u3))-
-                   4.0f*k3*((pow4(u2m) + pow4(u3m)) * (pow3(u1m) * u1) +
-                            (pow4(u1m) + pow4(u3m)) * (pow3(u2m) * u2) +
-                            (pow4(u1m) + pow4(u2m)) * (pow3(u3m) * u3));
+        // float3 B = -2.0f*k1*((pow2(u2m) + pow2(u3m)) * (    (u1m) * u1) +
+        //                      (pow2(u1m) + pow2(u3m)) * (    (u2m) * u2) +
+        //                      (pow2(u1m) + pow2(u2m)) * (    (u3m) * u3))-
+        //            2.0f*k2*((pow2(u2m) * pow2(u3m)) * (    (u1m) * u1) +
+        //                     (pow2(u1m) * pow2(u3m)) * (    (u2m) * u2) +
+        //                     (pow2(u1m) * pow2(u2m)) * (    (u3m) * u3))-
+        //            4.0f*k3*((pow4(u2m) + pow4(u3m)) * (pow3(u1m) * u1) +
+        //                     (pow4(u1m) + pow4(u3m)) * (pow3(u2m) * u2) +
+        //                     (pow4(u1m) + pow4(u2m)) * (pow3(u3m) * u3));
+
+        // Sami
+        float3 B = 2.0f*k1*(u1m)*u1+
+	           2.0f*k2*(u2m)*u2+
+		   2.0f*k3*(u3m)*u3
+        // /Sami
+
         Bx[i] += B.x;
         By[i] += B.y;
         Bz[i] += B.z;
