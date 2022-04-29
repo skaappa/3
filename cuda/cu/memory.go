@@ -2,6 +2,7 @@ package cu
 
 // This file implements CUDA memory management on the driver level
 
+//#include <cuda.h>
 import "C"
 
 import (

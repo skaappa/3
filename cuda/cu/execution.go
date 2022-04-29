@@ -2,6 +2,7 @@ package cu
 
 // This file implements execution of CUDA kernels
 
+//#include <cuda.h>
 import "C"
 
 import (

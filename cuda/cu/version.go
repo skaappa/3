@@ -2,6 +2,7 @@ package cu
 
 // This file implements CUDA driver version management
 
+//#include <cuda.h>
 import "C"
 
 const CUDA_VERSION = C.CUDA_VERSION
