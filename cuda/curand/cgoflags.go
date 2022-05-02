@@ -5,8 +5,8 @@ package curand
 //#cgo LDFLAGS:-lcurand
 //
 ////default location:
-//#cgo LDFLAGS:-L/usr/local/cuda/lib64 -L/usr/local/cuda/lib
-//#cgo CFLAGS: -I/usr/local/cuda/include/
+//#cgo LDFLAGS:-L/usr/local/cuda/lib64 -L/usr/local/cuda/lib -L/usr/lib64/
+//#cgo CFLAGS: -I/usr/local/cuda/include/ -I/opt/lintula/cuda/11.5/include/
 //
 ////Ubuntu 15.04:
 //#cgo LDFLAGS:-L/usr/lib/x86_64-linux-gnu/
