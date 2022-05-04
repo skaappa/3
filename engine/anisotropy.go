@@ -140,9 +140,26 @@ func AddAnisotropyEnergyDensity(dst *data.Slice) {
 		cuda.AddDotProduct(dst, -1./4., buf, Mf)
 	}
 
-	if haveTriaxial {
-        	// Sami
+	if haveCubic {
 		// 1st
+		cuda.Zero(buf)
+		addCubicAnisotropyFrom(buf, M, Msat, Kc1, sZero, sZero, AnisC1, AnisC2)
+		cuda.AddDotProduct(dst, -1./4., buf, Mf)
+
+		// 2nd
+		cuda.Zero(buf)
+		addCubicAnisotropyFrom(buf, M, Msat, sZero, Kc2, sZero, AnisC1, AnisC2)
+		cuda.AddDotProduct(dst, -1./6., buf, Mf)
+
+		// 3nd
+		cuda.Zero(buf)
+		addCubicAnisotropyFrom(buf, M, Msat, sZero, sZero, Kc3, AnisC1, AnisC2)
+		cuda.AddDotProduct(dst, -1./8., buf, Mf)
+	}
+
+
+	if haveTriaxial {
+		// 1st axis
 		cuda.Zero(buf)
 		addTriaxialAnisotropyFrom(buf, M, Msat, Kt1, sZero, sZero, AnisT1, AnisT2, AnisT3)
 		cuda.AddDotProduct(dst, -1./2., buf, Mf)
