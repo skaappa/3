@@ -5,8 +5,8 @@ package cufft
 //#cgo LDFLAGS:-lcufft
 //
 ////default location:
-//#cgo LDFLAGS:-L/usr/local/cuda/lib64 -L/usr/local/cuda/lib -L/usr/lib64/
-//#cgo CFLAGS: -I/usr/local/cuda/include/ -I/opt/lintula/cuda/11.5/include/
+//#cgo LDFLAGS: -L/appl/spack/install-tree/gcc-4.8.5/cuda-10.1.168-v5izax/targets/x86_64-linux/lib
+//#cgo CFLAGS: -I/usr/local/cuda/include/ -I/appl/spack/install-tree/gcc-4.8.5/cuda-10.1.168-v5izax/include
 //
 ////Ubuntu 15.04:
 //#cgo LDFLAGS:-L/usr/lib/x86_64-linux-gnu/

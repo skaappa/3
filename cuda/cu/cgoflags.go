@@ -5,8 +5,8 @@ package cu
 //#cgo LDFLAGS:-lcuda
 //
 ////default location:
-//#cgo LDFLAGS:-L/usr/local/cuda/lib64/stubs/ -L/opt/lintula/cuda/11.5/targets/x86_64-linux/lib/stubs/
-//#cgo CFLAGS: -I/usr/local/cuda/include/ -I/opt/lintula/cuda/11.5/include/
+//#cgo LDFLAGS:-L/usr/local/cuda/lib64/stubs/ -L/appl/spack/install-tree/gcc-4.8.5/cuda-10.1.168-v5izax/targets/x86_64-linux/lib/stubs/
+//#cgo CFLAGS: -I/usr/local/cuda/include/ -I/appl/spack/install-tree/gcc-4.8.5/cuda-10.1.168-v5izax/include
 //
 ////Ubuntu 15.04:
 //#cgo LDFLAGS:-L/usr/lib/x86_64-linux-gnu/
