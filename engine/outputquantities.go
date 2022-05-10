@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/mumax/3/cuda"
 	"github.com/mumax/3/data"
+        "log"
 )
 
 // The Info interface defines the bare minimum methods a quantity must implement
@@ -93,6 +94,7 @@ func NewVectorField(name, unit, desc string, f func(dst *data.Slice)) VectorFiel
 	return v
 }
 
+
 // NewVectorField constructs an outputable space-dependent scalar quantity whose
 // value is provided by function f.
 func NewScalarField(name, unit, desc string, f func(dst *data.Slice)) ScalarField {
@@ -139,6 +141,24 @@ func (s ScalarField) Average() float64         { return s.average()[0] }
 func (s ScalarField) Region(r int) ScalarField { return AsScalarField(inRegion(s.Quantity, r)) }
 func (s ScalarField) Name() string             { return NameOf(s.Quantity) }
 func (s ScalarField) Unit() string             { return UnitOf(s.Quantity) }
+func (s ScalarField) HostCopy() *data.Slice {
+	sl := ValueOf(s.Quantity)
+	defer cuda.Recycle(sl)
+	return sl.HostCopy()
+}
+
+
+func (s ScalarField) SetArray(src *data.Slice) {
+	data.Copy(ValueOf(s.Quantity), src)
+        log.Println("ok2")
+}
+
+func (s ScalarField) LoadFilee(fname string) {
+        log.Println("ok1")
+	s.SetArray(LoadFile(fname))
+}
+
+
 
 // VectorField enhances an outputField with methods specific to
 // a space-dependent vector quantity.
@@ -155,6 +175,20 @@ func AsVectorField(q Quantity) VectorField {
 	return VectorField{q}
 }
 
+func (v VectorField) SetArray(src *data.Slice) {
+	// if src.Size() != v.Mesh().Size() {
+	// 	src = data.Resample(src, v.Mesh().Size())
+	// }
+	data.Copy(ValueOf(v.Quantity), src)
+        log.Println("ok2")
+}
+
+func (v VectorField) LoadFile(fname string) {
+        log.Println("ok1")
+	v.SetArray(LoadFile(fname))
+}
+
+
 func (v VectorField) average() []float64       { return AverageOf(v.Quantity) }
 func (v VectorField) Average() data.Vector     { return unslice(v.average()) }
 func (v VectorField) Region(r int) VectorField { return AsVectorField(inRegion(v.Quantity, r)) }
@@ -167,3 +201,4 @@ func (v VectorField) HostCopy() *data.Slice {
 	defer cuda.Recycle(s)
 	return s.HostCopy()
 }
+
