@@ -61,7 +61,6 @@ func setAnisU(dst *data.Slice) {
 func LoadKu1(dst *data.Slice) {
      ku1 := cuda.NewSlice(1, Mesh().Size())
      data.Copy(ku1, ku1fromfile)
-     // cuda.ContKu1(dst, ku1, Mesh())
      data.Copy(dst, ku1)
      ku1.Free()
      
@@ -70,8 +69,6 @@ func LoadKu1(dst *data.Slice) {
 func LoadAnisU(dst *data.Slice) {
      anisu := cuda.NewSlice(3, Mesh().Size())
      data.Copy(anisu, anisufromfile)
-     // defer anisu.Recycle()
-     // cuda.ContAnisU(dst, anisu, Mesh())
      data.Copy(dst, anisu)
      anisu.Free()
 }
