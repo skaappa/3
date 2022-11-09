@@ -32,6 +32,15 @@ func Shift(dx int) {
 	TotalShift += float64(dx) * Mesh().CellSize()[X] // needed to re-init geom, regions
 	if ShiftM {
 		shiftMag(M.Buffer(), dx) // TODO: M.shift?
+		println("trace1")
+		shiftKt(M.Buffer(), Kt1, dx)
+		shiftKt(M.Buffer(), Kt2, dx)
+		shiftKt(M.Buffer(), Kt3, dx)
+		println("trace2")
+		shiftAnisT(M.Buffer(), AnisT1, dx)
+		shiftAnisT(M.Buffer(), AnisT2, dx)
+		shiftAnisT(M.Buffer(), AnisT3, dx)
+		println("trace3")
 	}
 	if ShiftRegions {
 		regions.shift(dx)
@@ -74,5 +83,25 @@ func shiftMagY(m *data.Slice, dy int) {
 		comp := m.Comp(c)
 		cuda.ShiftY(m2, comp, dy, float32(ShiftMagU[c]), float32(ShiftMagD[c]))
 		data.Copy(comp, m2) // str0 ?
+	}
+}
+
+func shiftKt(m *data.Slice, Kt ScalarField, dx int) {
+	KBuffer := cuda.Buffer(1, Mesh().Size())
+	defer cuda.Recycle(KBuffer)
+	for c := 0; c < m.NComp(); c++ {
+		comp := ValueOf(Kt)
+		cuda.ShiftX(KBuffer, comp, dx, float32(ShiftMagL[c]), float32(ShiftMagR[c]))
+		data.Copy(comp, KBuffer)
+	}
+}
+
+func shiftAnisT(m *data.Slice, AnisT VectorField, dx int) {
+	anisBuffer := cuda.Buffer(3, Mesh().Size())
+	defer cuda.Recycle(anisBuffer)
+	for c := 0; c < m.NComp(); c++ {
+		comp := ValueOf(AnisT)
+		cuda.ShiftX(anisBuffer, comp, dx, float32(ShiftMagL[c]), float32(ShiftMagR[c]))
+		data.Copy(comp, anisBuffer)
 	}
 }
