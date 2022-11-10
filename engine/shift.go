@@ -61,6 +61,87 @@ func shiftMag(m *data.Slice, dx int) {
 	}
 }
 
+func shiftKt(m *data.Slice, Kt ScalarField, dx int) {
+	KBuffer := cuda.Buffer(1, Mesh().Size())
+	defer cuda.Recycle(KBuffer)
+
+	// shift field by dx
+	comp := ValueOf(Kt.Quantity)
+	comp2 := ValueOf(Kt.Quantity)
+	defer comp.Free()
+	defer comp2.Free()
+	newv := float32(1) // initially fill edges with 1's
+	cuda.ShiftX(KBuffer, comp, dx, newv, newv)  // fills whole edge by one fixed value
+	data.Copy(comp, KBuffer)
+
+
+	// fill edges with correct values
+	n := Mesh().Size()
+	x1, x2 := shiftDirtyRange(dx)
+
+	for iz := 0; iz < n[Z]; iz++ {
+		for iy := 0; iy < n[Y]; iy++ {
+			for ix := x1; ix < x2; ix++ {
+			        if dx > 0 {
+					val := cuda.GetCell(comp2, 0, n[X] - dx + ix, iy, iz)
+					cuda.SetCell(comp, 0, ix, iy, iz, val)
+				} else {
+				        val := cuda.GetCell(comp2, 0, - n[X] - dx + ix, iy, iz)
+					cuda.SetCell(comp, 0, ix, iy, iz, val)
+				}
+			}
+		}
+	}
+
+}
+
+func shiftSingleComp(dst, src *data.Slice, c, dx int, newvalue float32) {
+	comp := src.Comp(c)
+	// defer comp.Free()
+	cuda.ShiftX(dst, comp, dx, newvalue, newvalue)
+	data.Copy(comp, dst)
+}
+
+func shiftAnisT(m *data.Slice, AnisT VectorField, dx int) {
+	KBuffer := cuda.Buffer(1, Mesh().Size())
+	defer cuda.Recycle(KBuffer)
+
+	// shift field by dx
+	comp := ValueOf(AnisT.Quantity)
+	comp2 := ValueOf(AnisT.Quantity)
+	defer comp.Free()
+	defer comp2.Free()
+	newv := float32(1) // initially fill edges with 1's
+	// for c := 0; c < 3; c++ {
+	//     cuda.ShiftX(KBuffer, AnisT.Comp(c), dx, newv, newv)
+	// }
+	// data.Copy(comp, KBuffer)
+	for c := 0; c < 3; c++ {
+            shiftSingleComp(KBuffer, comp, c, dx, newv)
+	}
+
+
+	// fill edges with correct values
+	n := Mesh().Size()
+	x1, x2 := shiftDirtyRange(dx)
+
+	for iz := 0; iz < n[Z]; iz++ {
+		for iy := 0; iy < n[Y]; iy++ {
+			for ix := x1; ix < x2; ix++ {
+				for c := 0; c < 3; c++ {
+			            if dx > 0 {
+				       	val := cuda.GetCell(comp2, c, n[X] - dx + ix, iy, iz)
+					cuda.SetCell(comp, c, ix, iy, iz, val)
+				    } else {
+				        val := cuda.GetCell(comp2, c, - n[X] - dx + ix, iy, iz)
+					cuda.SetCell(comp, c, ix, iy, iz, val)
+				    }
+				}
+			}
+		}
+	}
+}
+
 // shift the simulation window over dy cells in Y direction
 func YShift(dy int) {
 	TotalYShift += float64(dy) * Mesh().CellSize()[Y] // needed to re-init geom, regions
@@ -83,25 +164,5 @@ func shiftMagY(m *data.Slice, dy int) {
 		comp := m.Comp(c)
 		cuda.ShiftY(m2, comp, dy, float32(ShiftMagU[c]), float32(ShiftMagD[c]))
 		data.Copy(comp, m2) // str0 ?
-	}
-}
-
-func shiftKt(m *data.Slice, Kt ScalarField, dx int) {
-	KBuffer := cuda.Buffer(1, Mesh().Size())
-	defer cuda.Recycle(KBuffer)
-	for c := 0; c < m.NComp(); c++ {
-		comp := ValueOf(Kt)
-		cuda.ShiftX(KBuffer, comp, dx, float32(ShiftMagL[c]), float32(ShiftMagR[c]))
-		data.Copy(comp, KBuffer)
-	}
-}
-
-func shiftAnisT(m *data.Slice, AnisT VectorField, dx int) {
-	anisBuffer := cuda.Buffer(3, Mesh().Size())
-	defer cuda.Recycle(anisBuffer)
-	for c := 0; c < m.NComp(); c++ {
-		comp := ValueOf(AnisT)
-		cuda.ShiftX(anisBuffer, comp, dx, float32(ShiftMagL[c]), float32(ShiftMagR[c]))
-		data.Copy(comp, anisBuffer)
 	}
 }

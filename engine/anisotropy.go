@@ -120,7 +120,7 @@ func LoadAnisT3(dst *data.Slice) {
      anist3.Free()
 }
 
-func mysave(fname string, sfield VectorField) {
+func mysave(fname string, sfield ScalarField) {
      if !saved {
          s := ValueOf(sfield).HostCopy()
          f, err := httpfs.Create(fname)
