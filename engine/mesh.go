@@ -45,6 +45,12 @@ func SetMesh(Nx, Ny, Nz int, cellSizeX, cellSizeY, cellSizeZ float64, pbcx, pbcy
 		globalmesh_ = *data.NewMesh(Nx, Ny, Nz, cellSizeX, cellSizeY, cellSizeZ, pbc...)
 		M.alloc()
 		regions.alloc()
+		Kt1.xinit()
+		Kt2.xinit()
+		Kt3.xinit()
+		AnisT1.xinit()
+		AnisT2.xinit()
+		AnisT3.xinit()
 	} else {
 		// here be dragons
 		LogOut("resizing...")
@@ -60,6 +66,13 @@ func SetMesh(Nx, Ny, Nz int, cellSizeX, cellSizeY, cellSizeZ float64, pbcx, pbcy
 		globalmesh_ = *data.NewMesh(Nx, Ny, Nz, cellSizeX, cellSizeY, cellSizeZ, pbc...)
 		M.resize()
 		regions.resize()
+		Kt1.resize()
+		Kt2.resize()
+		Kt3.resize()
+		AnisT1.resize()
+		AnisT2.resize()
+		AnisT3.resize()
+
 		geometry.buffer.Free()
 		geometry.buffer = data.NilSlice(1, Mesh().Size())
 		geometry.setGeom(geometry.shape)

@@ -17,15 +17,15 @@ var (
 	Kc1        = NewScalarParam("Kc1", "J/m3", "1st order cubic anisotropy constant")
 	Kc2        = NewScalarParam("Kc2", "J/m3", "2nd order cubic anisotropy constant")
 	Kc3        = NewScalarParam("Kc3", "J/m3", "3rd order cubic anisotropy constant")
-	Kt1        = NewScalarField("Kt1", "J/m3", "1st axis triaxial anisotropy constant", setKt1)
-	Kt2        = NewScalarField("Kt2", "J/m3", "2nd axis triaxial anisotropy constant", setKt2)
-	Kt3        = NewScalarField("Kt3", "J/m3", "3rd axis triaxial anisotropy constant", setKt3)
+	Kt1        = NewShiftableField("Kt1", "J/m3", "1st axis triaxial anisotropy constant", 1, setKt1)
+	Kt2        = NewShiftableField("Kt2", "J/m3", "2nd axis triaxial anisotropy constant", 1, setKt2)
+	Kt3        = NewShiftableField("Kt3", "J/m3", "3rd axis triaxial anisotropy constant", 1, setKt3)
 	AnisU      = NewVectorParam("anisU", "", "Uniaxial anisotropy direction")
 	AnisC1     = NewVectorParam("anisC1", "", "Cubic anisotropy direction #1")
 	AnisC2     = NewVectorParam("anisC2", "", "Cubic anisotorpy directon #2")
-	AnisT1     = NewVectorField("anisT1", "", "Triaxial anisotropy direction #1", setAnisT1)
-	AnisT2     = NewVectorField("anisT2", "", "Triaxial anisotropy direction #2", setAnisT2)
-	AnisT3     = NewVectorField("anisT3", "", "Triaxial anisotropy direction #3", setAnisT3)
+	AnisT1     = NewShiftableField("anisT1", "", "Triaxial anisotropy direction #1", 3, setAnisT1)
+	AnisT2     = NewShiftableField("anisT2", "", "Triaxial anisotropy direction #2", 3, setAnisT2)
+	AnisT3     = NewShiftableField("anisT3", "", "Triaxial anisotropy direction #3", 3, setAnisT3)
 	B_anis     = NewVectorField("B_anis", "T", "Anisotropy field", AddAnisotropyField)
 	Edens_anis = NewScalarField("Edens_anis", "J/m3", "Anisotropy energy density", AddAnisotropyEnergyDensity)
 	E_anis     = NewScalarValue("E_anis", "J", "total anisotropy energy", GetAnisotropyEnergy)
@@ -33,7 +33,7 @@ var (
 
 var (
 	sZero = NewScalarParam("_zero", "", "utility zero parameter")
-        sZeroScalar = NewScalarField("_zerofield", "", "utility zero scalar field", setZeroField)
+        sZeroScalar = NewShiftableField("_zerofield", "", "utility zero scalar field", 3, setZeroField)
 )
 
 var (
@@ -120,15 +120,15 @@ func LoadAnisT3(dst *data.Slice) {
      anist3.Free()
 }
 
-func mysave(fname string, sfield ScalarField) {
+func mysave(fname string, sfield ShiftableField) {
      if !saved {
-         s := ValueOf(sfield).HostCopy()
+         s := sfield.buffer.HostCopy()
          f, err := httpfs.Create(fname)
          util.FatalErr(err)
          defer f.Close()
          info := data.Meta{Time: 0., Name: "myanis", Unit: "", CellSize: Mesh().CellSize()}
-         oommf.WriteOVF1(f, s, info, "text")
-         saved = true
+         oommf.WriteOVF2(f, s, info, "text")
+         // saved = true
      }
 }
 
@@ -174,27 +174,28 @@ func addCubicAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Kc1, Kc2, Kc
 	}
 }
 
-func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3 ScalarField, AnisT1, AnisT2, AnisT3 VectorField) {
+func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3 ShiftableField) {
 	// if Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero() {
 		ms := Msat.MSlice()
 		defer ms.Recycle()
 
-		kt1 := cuda.ToMSlice(ValueOf(Kt1))
+		// Kt1.init()
+		kt1 := cuda.ToMSlice(Kt1.Buffer())
 		defer kt1.Recycle()
 
-		kt2 := cuda.ToMSlice(ValueOf(Kt2))
+		kt2 := cuda.ToMSlice(Kt2.Buffer())
 		defer kt2.Recycle()
 
-		kt3 := cuda.ToMSlice(ValueOf(Kt3))
+		kt3 := cuda.ToMSlice(Kt3.buffer)
 		defer kt3.Recycle()
 
-		t1 := cuda.ToMSlice(ValueOf(AnisT1))
+		t1 := cuda.ToMSlice(AnisT1.buffer)
 		defer t1.Recycle()
 
-		t2 := cuda.ToMSlice(ValueOf(AnisT2))
+		t2 := cuda.ToMSlice(AnisT2.buffer)
 		defer t2.Recycle()
 
-		t3 := cuda.ToMSlice(ValueOf(AnisT3))
+		t3 := cuda.ToMSlice(AnisT3.buffer)
 		defer t3.Recycle()
 
 		cuda.AddTriaxialAnisotropy2(dst, M.Buffer(), ms, kt1, kt2, kt3, t1, t2, t3)
