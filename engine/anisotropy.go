@@ -5,9 +5,6 @@ package engine
 import (
 	"github.com/mumax/3/cuda"
 	"github.com/mumax/3/data"
-	"github.com/mumax/3/httpfs"
-	"github.com/mumax/3/oommf"
-	"github.com/mumax/3/util"
 )
 
 // Anisotropy variables
@@ -17,15 +14,9 @@ var (
 	Kc1        = NewScalarParam("Kc1", "J/m3", "1st order cubic anisotropy constant")
 	Kc2        = NewScalarParam("Kc2", "J/m3", "2nd order cubic anisotropy constant")
 	Kc3        = NewScalarParam("Kc3", "J/m3", "3rd order cubic anisotropy constant")
-	Kt1        = NewShiftableField("Kt1", "J/m3", "1st axis triaxial anisotropy constant", 1, setKt1)
-	Kt2        = NewShiftableField("Kt2", "J/m3", "2nd axis triaxial anisotropy constant", 1, setKt2)
-	Kt3        = NewShiftableField("Kt3", "J/m3", "3rd axis triaxial anisotropy constant", 1, setKt3)
 	AnisU      = NewVectorParam("anisU", "", "Uniaxial anisotropy direction")
 	AnisC1     = NewVectorParam("anisC1", "", "Cubic anisotropy direction #1")
 	AnisC2     = NewVectorParam("anisC2", "", "Cubic anisotorpy directon #2")
-	AnisT1     = NewShiftableField("anisT1", "", "Triaxial anisotropy direction #1", 3, setAnisT1)
-	AnisT2     = NewShiftableField("anisT2", "", "Triaxial anisotropy direction #2", 3, setAnisT2)
-	AnisT3     = NewShiftableField("anisT3", "", "Triaxial anisotropy direction #3", 3, setAnisT3)
 	B_anis     = NewVectorField("B_anis", "T", "Anisotropy field", AddAnisotropyField)
 	Edens_anis = NewScalarField("Edens_anis", "J/m3", "Anisotropy energy density", AddAnisotropyEnergyDensity)
 	E_anis     = NewScalarValue("E_anis", "J", "total anisotropy energy", GetAnisotropyEnergy)
@@ -33,103 +24,10 @@ var (
 
 var (
 	sZero = NewScalarParam("_zero", "", "utility zero parameter")
-        sZeroScalar = NewShiftableField("_zerofield", "", "utility zero scalar field", 3, setZeroField)
-)
-
-var (
-    saved = false
-    kt1fromfile = LoadFile("mykt1.ovf")
-    kt2fromfile = LoadFile("mykt2.ovf")
-    kt3fromfile = LoadFile("mykt3.ovf")
-    anist1fromfile = LoadFile("myanist1.ovf")
-    anist2fromfile = LoadFile("myanist2.ovf")
-    anist3fromfile = LoadFile("myanist3.ovf")
 )
 
 func init() {
 	registerEnergy(GetAnisotropyEnergy, AddAnisotropyEnergyDensity)
-}
-
-
-func setZeroField(*data.Slice) {
-}
-
-func setKt1(dst *data.Slice) {
-    LoadKt1(dst)
-}
-
-func setKt2(dst *data.Slice) {
-    LoadKt2(dst)
-}
-
-func setKt3(dst *data.Slice) {
-    LoadKt3(dst)
-}
-
-func setAnisT1(dst *data.Slice) {
-    LoadAnisT1(dst)
-}
-
-func setAnisT2(dst *data.Slice) {
-    LoadAnisT2(dst)
-}
-
-func setAnisT3(dst *data.Slice) {
-    LoadAnisT3(dst)
-}
-
-func LoadKt1(dst *data.Slice) {
-     kt1 := cuda.NewSlice(1, Mesh().Size())
-     data.Copy(kt1, kt1fromfile)
-     data.Copy(dst, kt1)
-     kt1.Free()
-}
-
-func LoadKt2(dst *data.Slice) {
-     kt2 := cuda.NewSlice(1, Mesh().Size())
-     data.Copy(kt2, kt2fromfile)
-     data.Copy(dst, kt2)
-     kt2.Free()
-}
-
-func LoadKt3(dst *data.Slice) {
-     kt3 := cuda.NewSlice(1, Mesh().Size())
-     data.Copy(kt3, kt3fromfile)
-     data.Copy(dst, kt3)
-     kt3.Free()
-}
-
-func LoadAnisT1(dst *data.Slice) {
-     anist1 := cuda.NewSlice(3, Mesh().Size())
-     data.Copy(anist1, anist1fromfile)
-     data.Copy(dst, anist1)
-     anist1.Free()
-}
-
-func LoadAnisT2(dst *data.Slice) {
-     anist2 := cuda.NewSlice(3, Mesh().Size())
-     data.Copy(anist2, anist2fromfile)
-     data.Copy(dst, anist2)
-     anist2.Free()
-}
-
-func LoadAnisT3(dst *data.Slice) {
-     anist3 := cuda.NewSlice(3, Mesh().Size())
-     data.Copy(anist3, anist3fromfile)
-     data.Copy(dst, anist3)
-     anist3.Free()
-}
-
-func mysave(fname string, sfield ShiftableField) {
-     if !saved {
-         s := sfield.buffer.HostCopy()
-         f, err := httpfs.Create(fname)
-         util.FatalErr(err)
-         defer f.Close()
-         info := data.Meta{Time: 0., Name: "myanis", Unit: "", CellSize: Mesh().CellSize()}
-         oommf.WriteOVF2(f, s, info, "text")
-         // saved = true
-     }
 }
 
 func addUniaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Ku1, Ku2 *RegionwiseScalar, AnisU *RegionwiseVector) {
@@ -174,7 +72,7 @@ func addCubicAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Kc1, Kc2, Kc
 	}
 }
 
-func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3 ShiftableField) {
+func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3 *ShiftableField) {
 	// if Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero() {
 		ms := Msat.MSlice()
 		defer ms.Recycle()
@@ -186,16 +84,16 @@ func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *Regionwis
 		kt2 := cuda.ToMSlice(Kt2.Buffer())
 		defer kt2.Recycle()
 
-		kt3 := cuda.ToMSlice(Kt3.buffer)
+		kt3 := cuda.ToMSlice(Kt3.Buffer())
 		defer kt3.Recycle()
 
-		t1 := cuda.ToMSlice(AnisT1.buffer)
+		t1 := cuda.ToMSlice(AnisT1.Buffer())
 		defer t1.Recycle()
 
-		t2 := cuda.ToMSlice(AnisT2.buffer)
+		t2 := cuda.ToMSlice(AnisT2.Buffer())
 		defer t2.Recycle()
 
-		t3 := cuda.ToMSlice(AnisT3.buffer)
+		t3 := cuda.ToMSlice(AnisT3.Buffer())
 		defer t3.Recycle()
 
 		cuda.AddTriaxialAnisotropy2(dst, M.Buffer(), ms, kt1, kt2, kt3, t1, t2, t3)
