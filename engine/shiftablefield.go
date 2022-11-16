@@ -101,16 +101,12 @@ func LoadAnisT3(dst *data.Slice) {
 }
 
 func mysave(fname string, sfield *ShiftableField) {
-     saved := false
-     if !saved {
-         s := sfield.buffer.HostCopy()
-         f, err := httpfs.Create(fname)
-         util.FatalErr(err)
-         defer f.Close()
-         info := data.Meta{Time: 0., Name: "myanis", Unit: "", CellSize: Mesh().CellSize()}
-         oommf.WriteOVF2(f, s, info, "text")
-         // saved = true
-     }
+     s := sfield.buffer.HostCopy()
+     f, err := httpfs.Create(fname)
+     util.FatalErr(err)
+     defer f.Close()
+     info := data.Meta{Time: 0., Name: "myanis", Unit: "", CellSize: Mesh().CellSize()}
+     oommf.WriteOVF2(f, s, info, "text")
 }
 
 
@@ -119,46 +115,9 @@ type ShiftableField struct {
 	ncomp      int
 }
 
-func (s ShiftableField) xinit() {  // This is called in mesh.go right after initing mesh
-	backup := s.Buffer().HostCopy()
-	s2 := Mesh().Size()
-	resized := data.Resample(backup, s2)
-	// s.Buffer().Free()
-	s.buffer = cuda.NewSlice(s.NComp(), s2)
-	data.Copy(s.buffer, resized)
-
-	println("Here xinit")
-	println(s.buffer)
-}
-
-func (s ShiftableField) resize() {
-	println("Here resize")
-	println(s.buffer)
-
-	backup := s.buffer.HostCopy()
-	s2 := Mesh().Size()
-	resized := data.Resample(backup, s2)
-	// s.Buffer().Free()
-	s.buffer = cuda.NewSlice(s.NComp(), s2)
-	data.Copy(s.buffer, resized)
-}
-
-
-
-// func NewShiftableField(name, unit, desc string, ncomp int, f func(dst *data.Slice)) ShiftableField {
-// 	q := AsShiftableField(&fieldFunc{info{ncomp, name, unit}, f})
-// 	DeclROnly(name, q, cat(desc, unit))
-// 	return q
-// }
-
 func NewShiftableField(loadedSlice *data.Slice, ncomp int) *ShiftableField {
         return &ShiftableField{loadedSlice, ncomp}
 }
-
-// func (s ShiftableField) alloc() {
-//         buffer := cuda.NewSlice(s.NComp(), MeshSize())
-//         s.buffer = buffer
-// }
 
 func (s *ShiftableField) Buffer() *data.Slice {
         buffer := cuda.Buffer(s.NComp(), MeshSize())
@@ -200,7 +159,6 @@ func (s *ShiftableField) Shift(dx int) {
                 }
         }
 	data.Copy(s.buffer, dst)
-        println("SHIFTED")
 }
 
 func (s *ShiftableField) NComp() int { return s.ncomp }

@@ -32,15 +32,7 @@ func Shift(dx int) {
 	TotalShift += float64(dx) * Mesh().CellSize()[X] // needed to re-init geom, regions
 	if ShiftM {
 		shiftMag(M.Buffer(), dx) // TODO: M.shift?
-		println("trace1")
-		Kt1.Shift(dx)
-		Kt2.Shift(dx)
-		Kt3.Shift(dx)
-		AnisT1.Shift(dx)
-		AnisT2.Shift(dx)
-		AnisT3.Shift(dx)
-		mysave("this2.ovf", Kt1)
-		println("trace3")
+
 	}
 	if ShiftRegions {
 		regions.shift(dx)
@@ -48,6 +40,16 @@ func Shift(dx int) {
 	if ShiftGeom {
 		geometry.shift(dx)
 	}
+	Kt1.Shift(dx)
+	Kt2.Shift(dx)
+	Kt3.Shift(dx)
+	AnisT1.Shift(dx)
+	AnisT2.Shift(dx)
+	AnisT3.Shift(dx)
+
+	mysave("this2.ovf", Kt1)
+	println(TotalShift)
+	
 	M.normalize()
 }
 
