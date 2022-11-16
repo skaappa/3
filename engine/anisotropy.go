@@ -46,7 +46,7 @@ func addUniaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Ku1, Ku2 
 		defer u.Recycle()
 
 		cuda.AddUniaxialAnisotropy2(dst, M.Buffer(), ms, ku1, ku2, u)
- 	}
+	}
 }
 
 func addCubicAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Kc1, Kc2, Kc3 *RegionwiseScalar, AnisC1, AnisC2 *RegionwiseVector) {
@@ -74,32 +74,30 @@ func addCubicAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Kc1, Kc2, Kc
 
 func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3 *ShiftableField) {
 	// if Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero() {
-		ms := Msat.MSlice()
-		defer ms.Recycle()
+	ms := Msat.MSlice()
+	defer ms.Recycle()
 
-		// Kt1.init()
-		kt1 := cuda.ToMSlice(Kt1.Buffer())
-		defer kt1.Recycle()
+	kt1 := cuda.ToMSlice(Kt1.Buffer())
+	defer kt1.Recycle()
 
-		kt2 := cuda.ToMSlice(Kt2.Buffer())
-		defer kt2.Recycle()
+	kt2 := cuda.ToMSlice(Kt2.Buffer())
+	defer kt2.Recycle()
 
-		kt3 := cuda.ToMSlice(Kt3.Buffer())
-		defer kt3.Recycle()
+	kt3 := cuda.ToMSlice(Kt3.Buffer())
+	defer kt3.Recycle()
 
-		t1 := cuda.ToMSlice(AnisT1.Buffer())
-		defer t1.Recycle()
+	t1 := cuda.ToMSlice(AnisT1.Buffer())
+	defer t1.Recycle()
 
-		t2 := cuda.ToMSlice(AnisT2.Buffer())
-		defer t2.Recycle()
+	t2 := cuda.ToMSlice(AnisT2.Buffer())
+	defer t2.Recycle()
 
-		t3 := cuda.ToMSlice(AnisT3.Buffer())
-		defer t3.Recycle()
+	t3 := cuda.ToMSlice(AnisT3.Buffer())
+	defer t3.Recycle()
 
-		cuda.AddTriaxialAnisotropy2(dst, M.Buffer(), ms, kt1, kt2, kt3, t1, t2, t3)
+	cuda.AddTriaxialAnisotropy2(dst, M.Buffer(), ms, kt1, kt2, kt3, t1, t2, t3)
 	// }
 }
-
 
 // Add the anisotropy field to dst
 func AddAnisotropyField(dst *data.Slice) {
@@ -112,11 +110,11 @@ func AddAnisotropyField(dst *data.Slice) {
 func AddAnisotropyEnergyDensity(dst *data.Slice) {
 	haveUniaxial := Ku1.nonZero() || Ku2.nonZero()
 	haveCubic := Kc1.nonZero() || Kc2.nonZero() || Kc3.nonZero()
-	haveTriaxial := true  // Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero()	
+	haveTriaxial := true // Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero()
 
 	if !haveUniaxial && !haveCubic {
-	        if !haveTriaxial {
-		        return
+		if !haveTriaxial {
+			return
 		}
 	}
 
@@ -156,21 +154,20 @@ func AddAnisotropyEnergyDensity(dst *data.Slice) {
 		cuda.AddDotProduct(dst, -1./8., buf, Mf)
 	}
 
-
 	if haveTriaxial {
 		// 1st axis
 		cuda.Zero(buf)
-		addTriaxialAnisotropyFrom(buf, M, Msat, Kt1, sZeroScalar, sZeroScalar, AnisT1, AnisT2, AnisT3)
+		addTriaxialAnisotropyFrom(buf, M, Msat, Kt1, ZeroShiftableField, ZeroShiftableField, AnisT1, AnisT2, AnisT3)
 		cuda.AddDotProduct(dst, -1./2., buf, Mf)
 
 		// 2nd
 		cuda.Zero(buf)
-		addTriaxialAnisotropyFrom(buf, M, Msat, sZeroScalar, Kt2, sZeroScalar, AnisT1, AnisT2, AnisT3)
+		addTriaxialAnisotropyFrom(buf, M, Msat, ZeroShiftableField, Kt2, ZeroShiftableField, AnisT1, AnisT2, AnisT3)
 		cuda.AddDotProduct(dst, -1./2., buf, Mf)
 
 		// 3nd
 		cuda.Zero(buf)
-		addTriaxialAnisotropyFrom(buf, M, Msat, sZeroScalar, sZeroScalar, Kt3, AnisT1, AnisT2, AnisT3)
+		addTriaxialAnisotropyFrom(buf, M, Msat, ZeroShiftableField, ZeroShiftableField, Kt3, AnisT1, AnisT2, AnisT3)
 		cuda.AddDotProduct(dst, -1./2., buf, Mf)
 	}
 }

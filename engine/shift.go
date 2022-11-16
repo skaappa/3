@@ -47,9 +47,6 @@ func Shift(dx int) {
 	AnisT2.Shift(dx)
 	AnisT3.Shift(dx)
 
-	mysave("this2.ovf", Kt1)
-	println(TotalShift)
-	
 	M.normalize()
 }
 
