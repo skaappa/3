@@ -73,10 +73,45 @@ func getShiftSpeed() float64 {
 }
 
 func GetDWxPos() float64 {
-	M := &M
-	mx := sAverageUniverse(M.Buffer().Comp(0))[0]
-	c := Mesh().CellSize()
-	n := Mesh().Size()
-	position := mx * c[0] * float64(n[0]) / 2.
+	// M := &M
+	// mx := sAverageUniverse(M.Buffer().Comp(0))[0]
+	// c := Mesh().CellSize()
+	// n := Mesh().Size()
+	// position := mx * c[0] * float64(n[0]) / 2.
+
+	position := SamisDWxPos()
+	println(Time, GetShiftPos(), position)
+
 	return GetShiftPos() + position
 }
+
+func SamisDWxPos() float64 {
+	// Position is the average x-value where the y-component
+	// turns negative (averaged over the y-axis):
+
+	M := &M
+	c := Mesh().CellSize()
+	n := Mesh().Size()
+
+	avg := make([]float64, n[Y])
+	for y := 0; y < n[Y]; y++ {
+		for x := 1; x < n[X]; x++ {
+		    if M.GetCell(x, y, 0)[1] < 0.0 {
+		       if M.GetCell(x-1, y, 0)[1] > 0.0 {
+		           avg[y] = float64(x)
+		       }
+		    }
+		}
+	}
+	position := Sum(avg) / float64(n[Y]) * c[0]
+	return position
+}
+
+func Sum(array []float64) float64 {  
+    result := 0.0
+    for _, v := range array {  
+        result += v  
+    }  
+    return result
+ }
+
