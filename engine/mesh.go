@@ -60,7 +60,6 @@ func SetMesh(Nx, Ny, Nz int, cellSizeX, cellSizeY, cellSizeZ float64, pbcx, pbcy
 		globalmesh_ = *data.NewMesh(Nx, Ny, Nz, cellSizeX, cellSizeY, cellSizeZ, pbc...)
 		M.resize()
 		regions.resize()
-
 		geometry.buffer.Free()
 		geometry.buffer = data.NilSlice(1, Mesh().Size())
 		geometry.setGeom(geometry.shape)

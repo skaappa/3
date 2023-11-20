@@ -93,7 +93,6 @@ func NewVectorField(name, unit, desc string, f func(dst *data.Slice)) VectorFiel
 	return v
 }
 
-
 // NewVectorField constructs an outputable space-dependent scalar quantity whose
 // value is provided by function f.
 func NewScalarField(name, unit, desc string, f func(dst *data.Slice)) ScalarField {
@@ -168,4 +167,3 @@ func (v VectorField) HostCopy() *data.Slice {
 	defer cuda.Recycle(s)
 	return s.HostCopy()
 }
-
