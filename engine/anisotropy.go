@@ -32,19 +32,14 @@ func init() {
 
 func addUniaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Ku1, Ku2 *RegionwiseScalar, AnisU *RegionwiseVector) {
 	if Ku1.nonZero() || Ku2.nonZero() {
-
 		ms := Msat.MSlice()
 		defer ms.Recycle()
-
 		ku1 := Ku1.MSlice()
 		defer ku1.Recycle()
-
 		ku2 := Ku2.MSlice()
 		defer ku2.Recycle()
-
 		u := AnisU.MSlice()
 		defer u.Recycle()
-
 		cuda.AddUniaxialAnisotropy2(dst, M.Buffer(), ms, ku1, ku2, u)
 	}
 }
@@ -73,7 +68,7 @@ func addCubicAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Kc1, Kc2, Kc
 }
 
 func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3 *ShiftableField) {
-	// if Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero() {
+
 	ms := Msat.MSlice()
 	defer ms.Recycle()
 
@@ -96,7 +91,7 @@ func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *Regionwis
 	defer t3.Recycle()
 
 	cuda.AddTriaxialAnisotropy2(dst, M.Buffer(), ms, kt1, kt2, kt3, t1, t2, t3)
-	// }
+
 }
 
 // Add the anisotropy field to dst
@@ -108,11 +103,11 @@ func AddAnisotropyField(dst *data.Slice) {
 
 // Add the anisotropy energy density to dst
 func AddAnisotropyEnergyDensity(dst *data.Slice) {
-	haveUniaxial := Ku1.nonZero() || Ku2.nonZero()
+	haveUnixial := Ku1.nonZero() || Ku2.nonZero()
 	haveCubic := Kc1.nonZero() || Kc2.nonZero() || Kc3.nonZero()
 	haveTriaxial := true // Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero()
 
-	if !haveUniaxial && !haveCubic {
+	if !haveUnixial && !haveCubic {
 		if !haveTriaxial {
 			return
 		}
@@ -125,7 +120,7 @@ func AddAnisotropyEnergyDensity(dst *data.Slice) {
 	Mf := ValueOf(M_full)
 	defer cuda.Recycle(Mf)
 
-	if haveUniaxial {
+	if haveUnixial {
 		// 1st
 		cuda.Zero(buf)
 		addUniaxialAnisotropyFrom(buf, M, Msat, Ku1, sZero, AnisU)
