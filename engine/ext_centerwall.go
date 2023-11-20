@@ -8,18 +8,20 @@ import (
 var (
 	DWPos   = NewScalarValue("ext_dwpos", "m", "Position of the simulation window while following a domain wall", GetShiftPos) // TODO: make more accurate
 	DWxPos  = NewScalarValue("ext_dwxpos", "m", "Position of the simulation window while following a domain wall", GetDWxPos)
-	DWSpeed = NewScalarValue("ext_dwspeed", "m/s", "Speed of the simulation window while following a domain wall", getShiftSpeed)
+	// DWSpeed = NewScalarValue("ext_dwspeed", "m/s", "Speed of the simulation window while following a domain wall", getShiftSpeed)
+	DWSpeed = NewScalarValue("ext_dwspeed", "m/s", "Speed of the domain wall", getDWSpeed)
 )
 
 func init() {
 	DeclFunc("ext_centerWall", CenterWall, "centerWall(c) shifts m after each step to keep m_c close to zero")
+	DeclFunc("centerWall", centerWall, "samis empty doc")
 }
 
 func centerWall(c int) {
 	M := &M
 	mc := sAverageUniverse(M.Buffer().Comp(c))[0]
 	n := Mesh().Size()
-	tolerance := 4 / float64(n[X]) // x*2 * expected <m> change for 1 cell shift
+	tolerance := 1 / float64(n[X]) // x*2 * expected <m> change for 1 cell shift
 
 	zero := data.Vector{0, 0, 0}
 	if ShiftMagL == zero || ShiftMagR == zero {
@@ -61,6 +63,8 @@ var (
 	lastShift float64 // shift the last time we queried speed
 	lastT     float64 // time the last time we queried speed
 	lastV     float64 // speed the last time we queried speed
+	lastDWxPos float64  // Sami
+	lastSpeed float64  // Sami
 )
 
 func getShiftSpeed() float64 {
@@ -72,46 +76,54 @@ func getShiftSpeed() float64 {
 	return lastV
 }
 
+func getDWSpeed() float64 {  // Samis function
+        pos := GetDWxPos()
+
+	if lastT == Time {
+	    lastT = Time
+	    return lastSpeed
+	}
+
+	speed := (pos - lastDWxPos) / (Time - lastT)
+	if lastDWxPos != pos {
+		lastDWxPos = pos
+		lastT = Time
+	}
+	lastSpeed = speed
+	return speed
+}
+
 func GetDWxPos() float64 {
-	// M := &M
+	M := &M
 	// mx := sAverageUniverse(M.Buffer().Comp(0))[0]
-	// c := Mesh().CellSize()
-	// n := Mesh().Size()
-	// position := mx * c[0] * float64(n[0]) / 2.
+	my := sAverageUniverse(M.Buffer().Comp(1))[0]
+	c := Mesh().CellSize()
+	n := Mesh().Size()
+	position := my * c[0] * float64(n[0]) / 2.
 
-	position := SamisDWxPos()
-	println(Time, GetShiftPos(), position)
-
+	// position := SamisDWxPos()
+        
 	return GetShiftPos() + position
 }
 
-func SamisDWxPos() float64 {
-	// Position is the average x-value where the y-component
-	// turns negative (averaged over the y-axis):
+// func SamisDWxPos_slow() float64 {
+// 	// Position is the average x-value where the y-component
+// 	// turns negative (averaged over the y-axis):
 
-	M := &M
-	c := Mesh().CellSize()
-	n := Mesh().Size()
+// 	M := &M
+// 	c := Mesh().CellSize()
+// 	n := Mesh().Size()
 
-	avg := make([]float64, n[Y])
-	for y := 0; y < n[Y]; y++ {
-		for x := 1; x < n[X]; x++ {
-		    if M.GetCell(x, y, 0)[1] < 0.0 {
-		       if M.GetCell(x-1, y, 0)[1] > 0.0 {
-		           avg[y] = float64(x)
-		       }
-		    }
-		}
-	}
-	position := Sum(avg) / float64(n[Y]) * c[0]
-	return position
-}
-
-func Sum(array []float64) float64 {  
-    result := 0.0
-    for _, v := range array {  
-        result += v  
-    }  
-    return result
- }
+// 	avg := make([]float64, n[Y])
+// 	for y := 0; y < n[Y]; y++ {
+// 		    for x := 1; x < n[X]; x++ {
+// 		        if M.GetCell(x, y, 0)[1] < 0.0 {
+//      	                    avg[y] = float64(x)
+// 			    break
+// 		        }
+// 		    }
+// 	}
+// 	position := Sum(avg) / float64(n[Y]) * c[0]
+// 	return position
+// }
 

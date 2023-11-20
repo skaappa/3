@@ -29,7 +29,7 @@ func GetShiftYPos() float64 { return -TotalYShift }
 
 // shift the simulation window over dx cells in X direction
 func Shift(dx int) {
-	TotalShift += float64(dx) * Mesh().CellSize()[X] // needed to re-init geom, regions
+	// TotalShift += float64(dx) * Mesh().CellSize()[X] // needed to re-init geom, regions  // Sami commented out
 	if ShiftM {
 		shiftMag(M.Buffer(), dx) // TODO: M.shift?
 
