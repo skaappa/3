@@ -51,7 +51,6 @@ addcubicanisotropy2(float* __restrict__ Bx, float* __restrict__ By, float* __res
                    4.0f*k3*((pow4(u2m) + pow4(u3m)) * (pow3(u1m) * u1) +
                             (pow4(u1m) + pow4(u3m)) * (pow3(u2m) * u2) +
                             (pow4(u1m) + pow4(u2m)) * (pow3(u3m) * u3));
-
         Bx[i] += B.x;
         By[i] += B.y;
         Bz[i] += B.z;
