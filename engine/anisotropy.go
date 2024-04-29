@@ -68,19 +68,50 @@ func addCubicAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Kc1, Kc2, Kc
 	}
 }
 
+func addTriaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat *RegionwiseScalar, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3 *ShiftableField) {
+
+	ms := Msat.MSlice()
+	defer ms.Recycle()
+
+	kt1 := cuda.ToMSlice(Kt1.Buffer())
+	defer kt1.Recycle()
+
+	kt2 := cuda.ToMSlice(Kt2.Buffer())
+	defer kt2.Recycle()
+
+	kt3 := cuda.ToMSlice(Kt3.Buffer())
+	defer kt3.Recycle()
+
+	t1 := cuda.ToMSlice(AnisT1.Buffer())
+	defer t1.Recycle()
+
+	t2 := cuda.ToMSlice(AnisT2.Buffer())
+	defer t2.Recycle()
+
+	t3 := cuda.ToMSlice(AnisT3.Buffer())
+	defer t3.Recycle()
+
+	cuda.AddTriaxialAnisotropy2(dst, M.Buffer(), ms, kt1, kt2, kt3, t1, t2, t3)
+
+}
+
 // Add the anisotropy field to dst
 func AddAnisotropyField(dst *data.Slice) {
 	addUniaxialAnisotropyFrom(dst, M, Msat, Ku1, Ku2, AnisU)
 	addCubicAnisotropyFrom(dst, M, Msat, Kc1, Kc2, Kc3, AnisC1, AnisC2)
+	addTriaxialAnisotropyFrom(dst, M, Msat, Kt1, Kt2, Kt3, AnisT1, AnisT2, AnisT3)
 }
 
 // Add the anisotropy energy density to dst
 func AddAnisotropyEnergyDensity(dst *data.Slice) {
 	haveUnixial := Ku1.nonZero() || Ku2.nonZero()
 	haveCubic := Kc1.nonZero() || Kc2.nonZero() || Kc3.nonZero()
+	haveTriaxial := true // Kt1.nonZero() || Kt2.nonZero() || Kt3.nonZero()
 
 	if !haveUnixial && !haveCubic {
-		return
+		if !haveTriaxial {
+			return
+		}
 	}
 
 	buf := cuda.Buffer(B_anis.NComp(), Mesh().Size())
@@ -117,6 +148,23 @@ func AddAnisotropyEnergyDensity(dst *data.Slice) {
 		cuda.Zero(buf)
 		addCubicAnisotropyFrom(buf, M, Msat, sZero, sZero, Kc3, AnisC1, AnisC2)
 		cuda.AddDotProduct(dst, -1./8., buf, Mf)
+	}
+
+	if haveTriaxial {
+		// 1st axis
+		cuda.Zero(buf)
+		addTriaxialAnisotropyFrom(buf, M, Msat, Kt1, ZeroShiftableField, ZeroShiftableField, AnisT1, AnisT2, AnisT3)
+		cuda.AddDotProduct(dst, -1./2., buf, Mf)
+
+		// 2nd
+		cuda.Zero(buf)
+		addTriaxialAnisotropyFrom(buf, M, Msat, ZeroShiftableField, Kt2, ZeroShiftableField, AnisT1, AnisT2, AnisT3)
+		cuda.AddDotProduct(dst, -1./2., buf, Mf)
+
+		// 3nd
+		cuda.Zero(buf)
+		addTriaxialAnisotropyFrom(buf, M, Msat, ZeroShiftableField, ZeroShiftableField, Kt3, AnisT1, AnisT2, AnisT3)
+		cuda.AddDotProduct(dst, -1./2., buf, Mf)
 	}
 }
 

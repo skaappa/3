@@ -8,18 +8,19 @@ import (
 var (
 	DWPos   = NewScalarValue("ext_dwpos", "m", "Position of the simulation window while following a domain wall", GetShiftPos) // TODO: make more accurate
 	DWxPos  = NewScalarValue("ext_dwxpos", "m", "Position of the simulation window while following a domain wall", GetDWxPos)
-	DWSpeed = NewScalarValue("ext_dwspeed", "m/s", "Speed of the simulation window while following a domain wall", getShiftSpeed)
+	DWSpeed = NewScalarValue("ext_dwspeed", "m/s", "Speed of the domain wall", getDWSpeed)
 )
 
 func init() {
 	DeclFunc("ext_centerWall", CenterWall, "centerWall(c) shifts m after each step to keep m_c close to zero")
+	DeclFunc("centerWall", centerWall, "No post-step. Called manually.")
 }
 
 func centerWall(c int) {
 	M := &M
 	mc := sAverageUniverse(M.Buffer().Comp(c))[0]
 	n := Mesh().Size()
-	tolerance := 4 / float64(n[X]) // x*2 * expected <m> change for 1 cell shift
+	tolerance := 1 / float64(n[X]) // x*2 * expected <m> change for 1 cell shift
 
 	zero := data.Vector{0, 0, 0}
 	if ShiftMagL == zero || ShiftMagR == zero {
@@ -61,6 +62,8 @@ var (
 	lastShift float64 // shift the last time we queried speed
 	lastT     float64 // time the last time we queried speed
 	lastV     float64 // speed the last time we queried speed
+	lastDWxPos float64  // Last domain wall position
+	lastSpeed float64  // Last domain wall speed
 )
 
 func getShiftSpeed() float64 {
@@ -72,11 +75,30 @@ func getShiftSpeed() float64 {
 	return lastV
 }
 
+func getDWSpeed() float64 {
+        pos := GetDWxPos()
+
+	if lastT == Time {
+	    lastT = Time
+	    return lastSpeed
+	}
+
+	speed := (pos - lastDWxPos) / (Time - lastT)
+	if lastDWxPos != pos {
+		lastDWxPos = pos
+		lastT = Time
+	}
+	lastSpeed = speed
+	return speed
+}
+
 func GetDWxPos() float64 {
 	M := &M
-	mx := sAverageUniverse(M.Buffer().Comp(0))[0]
+	my := sAverageUniverse(M.Buffer().Comp(1))[0]
 	c := Mesh().CellSize()
 	n := Mesh().Size()
-	position := mx * c[0] * float64(n[0]) / 2.
+	position := my * c[0] * float64(n[0]) / 2.
+
 	return GetShiftPos() + position
 }
+
