@@ -75,7 +75,7 @@ func getShiftSpeed() float64 {
 	return lastV
 }
 
-func getDWSpeed() float64 {  // Samis function
+func getDWSpeed() float64 {
         pos := GetDWxPos()
 
 	if lastT == Time {

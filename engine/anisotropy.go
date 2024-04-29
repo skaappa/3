@@ -40,6 +40,7 @@ func addUniaxialAnisotropyFrom(dst *data.Slice, M magnetization, Msat, Ku1, Ku2 
 		defer ku2.Recycle()
 		u := AnisU.MSlice()
 		defer u.Recycle()
+
 		cuda.AddUniaxialAnisotropy2(dst, M.Buffer(), ms, ku1, ku2, u)
 	}
 }
